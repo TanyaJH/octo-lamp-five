@@ -19,72 +19,147 @@
       5. Add a countdown timer - when the time is up, end the quiz, display the score and highlight the correct answers
 *************************** */
 
-window.addEventListener('DOMContentLoaded', () => {
-  const start = document.querySelector('#start');
-  start.addEventListener('click', function (e) {
-    document.querySelector('#quizBlock').style.display = 'block';
-    start.style.display = 'none';
+window.addEventListener("DOMContentLoaded", () => {
+  const start = document.querySelector("#start");
+  start.addEventListener("click", function (e) {
+    document.querySelector("#quizBlock").style.display = "block";
+    start.style.display = "none";
   });
+  let timer = null;
   // quizArray QUESTIONS & ANSWERS
   // q = QUESTION, o = OPTIONS, a = CORRECT ANSWER
   // Basic ideas from https://code-boxx.com/simple-javascript-quiz/
   const quizArray = [
     {
-      q: 'Which is the third planet from the sun?',
-      o: ['Saturn', 'Earth', 'Pluto', 'Mars'],
+      q: "Which is the third planet from the sun?",
+      o: ["Saturn", "Earth", "Pluto", "Mars"],
       a: 1, // array index 1 - so Earth is the correct answer here
     },
     {
-      q: 'Which is the largest ocean on Earth?',
-      o: ['Atlantic Ocean', 'Indian Ocean', 'Arctic Ocean', 'Pacific Ocean'],
+      q: "Which is the largest ocean on Earth?",
+      o: ["Atlantic Ocean", "Indian Ocean", "Arctic Ocean", "Pacific Ocean"],
       a: 3,
     },
     {
-      q: 'What is the capital of Australia',
-      o: ['Sydney', 'Canberra', 'Melbourne', 'Perth'],
+      q: "What is the capital of Australia",
+      o: ["Sydney", "Canberra", "Melbourne", "Perth"],
       a: 1,
+    },
+    {
+      q: "Where can you traverse a volcanos magma chamber?",
+      o: ["Hawaii", "Iceland", "Japan", "Indonesia"],
+      a: 1,
+    },
+    {
+      q: "What is the name of the driest continent on Earth?",
+      o: ["Australia", "Africa", "Antartica", "Asia"],
+      a: 2,
     },
   ];
 
   // function to Display the quiz questions and answers from the object
   const displayQuiz = () => {
-    const quizWrap = document.querySelector('#quizWrap');
-    let quizDisplay = '';
-    quizArray.map((quizItem, index) => {
+    const quizWrap = document.querySelector("#quizWrap");
+    let quizDisplay = "";
+    quizArray.forEach((quizItem, index) => {
       quizDisplay += `<ul class="list-group">
-                   Q - ${quizItem.q}
+                  Q - ${quizItem.q}
                     <li class="list-group-item mt-2" id="li_${index}_0"><input type="radio" name="radio${index}" id="radio_${index}_0"> ${quizItem.o[0]}</li>
                     <li class="list-group-item" id="li_${index}_1"><input type="radio" name="radio${index}" id="radio_${index}_1"> ${quizItem.o[1]}</li>
                     <li class="list-group-item"  id="li_${index}_2"><input type="radio" name="radio${index}" id="radio_${index}_2"> ${quizItem.o[2]}</li>
                     <li class="list-group-item"  id="li_${index}_3"><input type="radio" name="radio${index}" id="radio_${index}_3"> ${quizItem.o[3]}</li>
                     </ul>
                     <div>&nbsp;</div>`;
-      quizWrap.innerHTML = quizDisplay;
     });
+    quizWrap.innerHTML = quizDisplay;
   };
 
   // Calculate the score
   const calculateScore = () => {
     let score = 0;
-    quizArray.map((quizItem, index) => {
+    quizArray.forEach((quizItem, index) => {
       for (let i = 0; i < 4; i++) {
         //highlight the li if it is the correct answer
-        let li = `li_${index}_${i}`;
-        let r = `radio_${index}_${i}`;
-        liElement = document.querySelector('#' + li);
-        radioElement = document.querySelector('#' + r);
+        const li = `li_${index}_${i}`;
+        const r = `radio_${index}_${i}`;
+        const liElement = document.querySelector("#" + li);
+        const radioElement = document.querySelector("#" + r);
 
         if (quizItem.a == i) {
           //change background color of li element here
+          liElement.style.backgroundColor = "yellow";
         }
 
-        if (radioElement.checked) {
+        if (radioElement.checked && quizItem.a === i) {
           // code for task 1 goes here
+          score++;
+        }
+      }
+    });
+    return score;
+  };
+
+  // call the displayQuiz function
+  const submitButton = document.querySelector("#btnSubmit");
+  submitButton.addEventListener("click", () => {
+    clearInterval(timer);
+    const score = calculateScore();
+    document.querySelector("#score").textContent = `Score: ${score}`;
+    highlightCorrectAnswers();
+  });
+
+  const resetButton = document.querySelector("#btnReset");
+  resetButton.addEventListener("click", () => {
+    window.location.reload();
+  });
+
+  const countdownTimer = () => {
+    let seconds = 60;
+    const timeDisplay = document.querySelector("#time");
+
+    timer = setInterval(() => {
+      seconds--;
+      timeDisplay.textContent = formatTime(seconds);
+
+      if (seconds <= 0) {
+        clearInterval(timer);
+        endQuiz();
+      }
+    }, 1000);
+  };
+
+  const formatTime = (seconds) => {
+    const min = Math.floor(seconds / 60);
+    const sec = seconds % 60;
+    return `${padZero(min)}:${padZero(sec)}`;
+  };
+
+  const padZero = (num) => {
+    return num < 10 ? "0" + num : num;
+  };
+
+  const endQuiz = () => {
+    const score = calculateScore();
+    document.querySelector("#score").textContent = `Score: ${score}`;
+    highlightCorrectAnswers();
+  };
+
+  const highlightCorrectAnswers = () => {
+    quizArray.forEach((quizItem, index) => {
+      for (let i = 0; i < 4; i++) {
+        const li = `li_${index}_${i}`;
+        const r = `radio_${index}_${i}`;
+        const liElement = document.querySelector("#" + li);
+        const radioElement = document.querySelector("#" + r);
+
+        if (quizItem.a === i) {
+          liElement.style.backgroundColor = "yellow";
+        } else if (quizItem.a !== i && radioElement.checked) {
+          liElement.style.color = "red";
         }
       }
     });
   };
-
-  // call the displayQuiz function
   displayQuiz();
+  countdownTimer();
 });
